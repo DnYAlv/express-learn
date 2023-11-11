@@ -1,14 +1,31 @@
-import express, { type Application, type Request, type Response, type NextFunction } from 'express'
-import dotenv from 'dotenv'
-dotenv.config()
+import express, { type Application } from 'express'
+import config from './config/environment'
+import { routes } from './routes'
+import { logger } from './utils/logger'
+import bodyParser from 'body-parser'
+import cors from 'cors'
+
+// connect DB
+import './utils/connectDB'
 
 const app: Application = express()
-const port: number = parseInt(process.env.PORT ?? '4000')
+const port: number = parseInt(`${config.port}`)
 
-app.use('/health', (req: Request, res: Response, next: NextFunction) => {
-  res.status(200).send({ status: '200', data: 'Hello World' })
+// parse body request
+app.use(bodyParser.urlencoded({ extended: false }))
+app.use(bodyParser.json())
+
+// Cors access handler
+app.use(cors())
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*')
+  res.setHeader('Access-Control-Allow-Methods', '*')
+  res.setHeader('Access-Control-Allow-Headers', '*')
+  next()
 })
 
+routes(app)
+
 app.listen(port, () => {
-  console.log(`Server is listening on port http://localhost:${port}`)
+  logger.info(`Server is listening on port http://localhost:${port}`)
 })
